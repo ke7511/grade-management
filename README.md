@@ -1,44 +1,84 @@
-# grade management
+# 成绩管理系统
 
-This template should help get you started developing with Vue 3 in Vite.
+基于 Vue 3 + Node.js + Express + MySQL 的学生成绩管理系统。
 
-## Recommended IDE Setup
+## 功能特性
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- 🔐 **多角色登录**：管理员、教师、学生
+- 📊 **成绩管理**：录入、修改、删除、统计
+- 📈 **数据统计**：班级成绩分析、及格率统计
+- 📥 **成绩导出**：支持 Excel 格式导出
+- 🔔 **补考通知**：自动筛选不及格学生
 
-## Recommended Browser Setup
+## 技术栈
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+| 分类 | 技术 |
+|------|------|
+| 前端 | Vue 3, Vite, Element Plus, Pinia, Vue Router |
+| 后端 | Node.js, Express, JWT, bcrypt |
+| 数据库 | MySQL |
 
-## Customize configuration
+## 项目结构
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+```
+grade-management/
+├── client/          # 前端代码
+│   ├── src/
+│   │   ├── api/     # API 请求封装
+│   │   ├── views/   # 页面组件
+│   │   ├── stores/  # Pinia 状态管理
+│   │   └── router/  # 路由配置
+│   └── vite.config.js
+├── server/          # 后端代码
+│   ├── src/
+│   │   ├── controllers/  # 控制器
+│   │   ├── routes/       # 路由
+│   │   └── middleware/   # 中间件
+│   └── init.sql     # 数据库初始化脚本
+└── pnpm-workspace.yaml
+```
 
-## Project Setup
+## 快速开始
 
-```sh
+### 环境要求
+
+- Node.js >= 20
+- MySQL >= 8.0
+- pnpm
+
+### 安装依赖
+
+```bash
 pnpm install
 ```
 
-### Compile and Hot-Reload for Development
+### 配置数据库
 
-```sh
-pnpm dev
+1. 创建 MySQL 数据库并执行 `server/init.sql`
+2. 复制 `server/.env.example` 为 `server/.env` 并配置数据库信息：
+
+```env
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=你的密码
+DB_NAME=grade_management
+JWT_SECRET=your-secret-key
 ```
 
-### Compile and Minify for Production
+### 启动项目
 
-```sh
-pnpm build
+```bash
+# 启动后端
+pnpm dev:server
+
+# 启动前端（新终端）
+pnpm dev:client
 ```
+### 默认账户
 
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm lint
-```
+| 角色 | 用户名 | 密码 |
+|------|--------|------|
+| 管理员 | admin | 123456 |
+| 教师 | teacher | 123456 |
+| 学生 | student | 123456 |
