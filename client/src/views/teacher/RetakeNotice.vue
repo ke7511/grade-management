@@ -1,9 +1,14 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useGradeStore } from '@/stores/grade'
+import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
 const gradeStore = useGradeStore()
+const userStore = useUserStore()
+
+// 是否为教师角色
+const isTeacher = computed(() => userStore.role === 'teacher')
 
 const loading = ref(false)
 const selectedCourse = ref(null)
@@ -13,6 +18,12 @@ const failedList = ref([])
 // 加载数据
 const loadData = async () => {
   await gradeStore.loadCourses()
+
+  // 教师自动设置课程
+  if (isTeacher.value && gradeStore.courses.length > 0) {
+    selectedCourse.value = gradeStore.courses[0].id
+  }
+
   await loadFailedStudents()
 }
 
@@ -74,7 +85,8 @@ const handleExport = () => {
 
       <!-- 筛选 -->
       <el-form inline class="filter-form">
-        <el-form-item label="课程">
+        <!-- 管理员：显示下拉框 -->
+        <el-form-item v-if="!isTeacher" label="课程">
           <el-select v-model="selectedCourse" placeholder="全部课程" clearable style="width: 180px">
             <el-option
               v-for="course in gradeStore.courses"
@@ -83,6 +95,10 @@ const handleExport = () => {
               :value="course.id"
             />
           </el-select>
+        </el-form-item>
+        <!-- 教师：直接显示文本 -->
+        <el-form-item v-else label="课程">
+          <span class="teacher-info">{{ gradeStore.courses[0]?.name || '未分配' }}</span>
         </el-form-item>
         <el-form-item label="及格分数线">
           <el-input-number v-model="passScore" :min="0" :max="100" />
@@ -157,5 +173,10 @@ const handleExport = () => {
 .text-danger {
   color: var(--danger-color);
   font-weight: 500;
+}
+
+.teacher-info {
+  font-weight: 500;
+  color: #409eff;
 }
 </style>

@@ -1,9 +1,14 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useGradeStore } from '@/stores/grade'
+import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
 const gradeStore = useGradeStore()
+const userStore = useUserStore()
+
+// 是否为教师角色
+const isTeacher = computed(() => userStore.role === 'teacher')
 
 const loading = ref(false)
 const gradeList = ref([])
@@ -23,6 +28,15 @@ const classOptions = computed(() => gradeStore.classes)
 const loadData = async () => {
   await gradeStore.loadCourses()
   await gradeStore.loadClasses()
+
+  // 教师自动设置唯一的课程和班级
+  if (isTeacher.value && gradeStore.courses.length > 0) {
+    form.courseId = gradeStore.courses[0].id
+  }
+  if (isTeacher.value && gradeStore.classes.length > 0) {
+    form.classId = gradeStore.classes[0].id
+  }
+
   await loadGrades()
 }
 
@@ -106,26 +120,45 @@ const handleExport = () => {
             <el-option label="2025-2026学年第二学期" value="2025-2" />
           </el-select>
         </el-form-item>
-        <el-form-item label="课程">
-          <el-select v-model="form.courseId" placeholder="全部课程" clearable style="width: 150px">
-            <el-option
-              v-for="course in courseOptions"
-              :key="course.id"
-              :label="course.name"
-              :value="course.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="班级">
-          <el-select v-model="form.classId" placeholder="全部班级" clearable style="width: 150px">
-            <el-option
-              v-for="cls in classOptions"
-              :key="cls.id"
-              :label="cls.name"
-              :value="cls.id"
-            />
-          </el-select>
-        </el-form-item>
+
+        <!-- 管理员：显示下拉框 -->
+        <template v-if="!isTeacher">
+          <el-form-item label="课程">
+            <el-select
+              v-model="form.courseId"
+              placeholder="全部课程"
+              clearable
+              style="width: 150px"
+            >
+              <el-option
+                v-for="course in courseOptions"
+                :key="course.id"
+                :label="course.name"
+                :value="course.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="班级">
+            <el-select v-model="form.classId" placeholder="全部班级" clearable style="width: 150px">
+              <el-option
+                v-for="cls in classOptions"
+                :key="cls.id"
+                :label="cls.name"
+                :value="cls.id"
+              />
+            </el-select>
+          </el-form-item>
+        </template>
+
+        <!-- 教师：直接显示文本 -->
+        <template v-else>
+          <el-form-item label="课程">
+            <span class="teacher-info">{{ courseOptions[0]?.name || '未分配' }}</span>
+          </el-form-item>
+          <el-form-item label="班级">
+            <span class="teacher-info">{{ classOptions[0]?.name || '未分配' }}</span>
+          </el-form-item>
+        </template>
       </el-form>
 
       <!-- 导出按钮 -->
@@ -202,5 +235,10 @@ const handleExport = () => {
   color: #909399;
   font-size: 14px;
   text-align: center;
+}
+
+.teacher-info {
+  font-weight: 500;
+  color: #409eff;
 }
 </style>

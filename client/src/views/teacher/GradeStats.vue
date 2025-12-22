@@ -1,8 +1,13 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useGradeStore } from '@/stores/grade'
+import { useUserStore } from '@/stores/user'
 
 const gradeStore = useGradeStore()
+const userStore = useUserStore()
+
+// 是否为教师角色
+const isTeacher = computed(() => userStore.role === 'teacher')
 
 const loading = ref(false)
 const selectedCourse = ref(null)
@@ -71,7 +76,13 @@ const scoreDistribution = computed(() => {
     <div class="page-card">
       <div class="course-selector">
         <span class="label">选择课程：</span>
-        <el-select v-model="selectedCourse" placeholder="请选择课程" style="width: 200px">
+        <!-- 管理员：显示下拉框 -->
+        <el-select
+          v-if="!isTeacher"
+          v-model="selectedCourse"
+          placeholder="请选择课程"
+          style="width: 200px"
+        >
           <el-option
             v-for="course in courseOptions"
             :key="course.id"
@@ -79,6 +90,8 @@ const scoreDistribution = computed(() => {
             :value="course.id"
           />
         </el-select>
+        <!-- 教师：直接显示文本 -->
+        <span v-else class="teacher-info">{{ courseOptions[0]?.name || '未分配' }}</span>
       </div>
     </div>
 
@@ -222,5 +235,10 @@ const scoreDistribution = computed(() => {
 
 .text-danger {
   color: var(--danger-color);
+}
+
+.teacher-info {
+  font-weight: 500;
+  color: #409eff;
 }
 </style>

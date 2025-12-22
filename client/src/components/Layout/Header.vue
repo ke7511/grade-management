@@ -134,6 +134,7 @@ const handleLogout = async () => {
   font-size: 14px;
   font-weight: 500;
   color: #303133;
+  margin-bottom: 4px;
 }
 
 .user-role {

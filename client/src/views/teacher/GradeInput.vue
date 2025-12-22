@@ -1,9 +1,14 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useGradeStore } from '@/stores/grade'
+import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
 const gradeStore = useGradeStore()
+const userStore = useUserStore()
+
+// 是否为教师角色
+const isTeacher = computed(() => userStore.role === 'teacher')
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -27,7 +32,36 @@ const classOptions = computed(() => gradeStore.classes)
 onMounted(async () => {
   await gradeStore.loadCourses()
   await gradeStore.loadClasses()
+
+  // 教师自动设置唯一的课程和班级，并自动加载学生数据
+  if (isTeacher.value && gradeStore.courses.length > 0) {
+    form.courseId = gradeStore.courses[0].id
+  }
+  if (isTeacher.value && gradeStore.classes.length > 0) {
+    form.classId = gradeStore.classes[0].id
+  }
+
+  // 教师自动加载学生列表
+  if (isTeacher.value && form.courseId && form.classId) {
+    await loadStudentsQuiet()
+  }
 })
+
+// 加载学生列表（静默模式，不弹窗）
+const loadStudentsQuiet = async () => {
+  loading.value = true
+  try {
+    const students = await gradeStore.loadStudents(form.classId)
+    gradeList.value = students.map(s => ({
+      studentId: s.id,
+      studentCode: s.studentCode,
+      studentName: s.studentName,
+      score: null
+    }))
+  } finally {
+    loading.value = false
+  }
+}
 
 // 加载学生列表
 const loadStudents = async () => {
@@ -112,27 +146,43 @@ const handleClear = () => {
             <el-option label="2025-2026学年第二学期" value="2025-2" />
           </el-select>
         </el-form-item>
-        <el-form-item label="课程">
-          <el-select v-model="form.courseId" placeholder="请选择课程" style="width: 180px">
-            <el-option
-              v-for="course in courseOptions"
-              :key="course.id"
-              :label="course.name"
-              :value="course.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="班级">
-          <el-select v-model="form.classId" placeholder="请选择班级" style="width: 180px">
-            <el-option
-              v-for="cls in classOptions"
-              :key="cls.id"
-              :label="cls.name"
-              :value="cls.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
+
+        <!-- 管理员：显示下拉框 -->
+        <template v-if="!isTeacher">
+          <el-form-item label="课程">
+            <el-select v-model="form.courseId" placeholder="请选择课程" style="width: 180px">
+              <el-option
+                v-for="course in courseOptions"
+                :key="course.id"
+                :label="course.name"
+                :value="course.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="班级">
+            <el-select v-model="form.classId" placeholder="请选择班级" style="width: 180px">
+              <el-option
+                v-for="cls in classOptions"
+                :key="cls.id"
+                :label="cls.name"
+                :value="cls.id"
+              />
+            </el-select>
+          </el-form-item>
+        </template>
+
+        <!-- 教师：直接显示文本 -->
+        <template v-else>
+          <el-form-item label="课程">
+            <span class="teacher-info">{{ courseOptions[0]?.name || '未分配' }}</span>
+          </el-form-item>
+          <el-form-item label="班级">
+            <span class="teacher-info">{{ classOptions[0]?.name || '未分配' }}</span>
+          </el-form-item>
+        </template>
+
+        <!-- 管理员才需要加载按钮 -->
+        <el-form-item v-if="!isTeacher">
           <el-button type="primary" :loading="loading" @click="loadStudents">
             <el-icon>
               <Search />
@@ -154,7 +204,6 @@ const handleClear = () => {
               :min="0"
               :max="100"
               :precision="0"
-              placeholder="请输入成绩"
               style="width: 140px"
             />
           </template>
@@ -202,5 +251,10 @@ const handleClear = () => {
 
 .text-muted {
   color: #c0c4cc;
+}
+
+.teacher-info {
+  font-weight: 500;
+  color: #409eff;
 }
 </style>

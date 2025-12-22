@@ -1,9 +1,14 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useGradeStore } from '@/stores/grade'
+import { useUserStore } from '@/stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const gradeStore = useGradeStore()
+const userStore = useUserStore()
+
+// 是否为教师角色
+const isTeacher = computed(() => userStore.role === 'teacher')
 
 const loading = ref(false)
 const gradeList = ref([])
@@ -36,6 +41,15 @@ const loadData = async () => {
   try {
     await gradeStore.loadCourses()
     await gradeStore.loadClasses()
+
+    // 教师自动设置课程和班级
+    if (isTeacher.value && gradeStore.courses.length > 0) {
+      searchForm.courseId = gradeStore.courses[0].id
+    }
+    if (isTeacher.value && gradeStore.classes.length > 0) {
+      searchForm.classId = gradeStore.classes[0].id
+    }
+
     await loadGrades()
   } finally {
     loading.value = false
@@ -153,36 +167,50 @@ const handleReset = () => {
             style="width: 150px"
           />
         </el-form-item>
-        <el-form-item label="课程">
-          <el-select
-            v-model="searchForm.courseId"
-            placeholder="全部课程"
-            clearable
-            style="width: 150px"
-          >
-            <el-option
-              v-for="course in gradeStore.courses"
-              :key="course.id"
-              :label="course.name"
-              :value="course.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="班级">
-          <el-select
-            v-model="searchForm.classId"
-            placeholder="全部班级"
-            clearable
-            style="width: 150px"
-          >
-            <el-option
-              v-for="cls in gradeStore.classes"
-              :key="cls.id"
-              :label="cls.name"
-              :value="cls.id"
-            />
-          </el-select>
-        </el-form-item>
+
+        <!-- 管理员：显示下拉框 -->
+        <template v-if="!isTeacher">
+          <el-form-item label="课程">
+            <el-select
+              v-model="searchForm.courseId"
+              placeholder="全部课程"
+              clearable
+              style="width: 150px"
+            >
+              <el-option
+                v-for="course in gradeStore.courses"
+                :key="course.id"
+                :label="course.name"
+                :value="course.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="班级">
+            <el-select
+              v-model="searchForm.classId"
+              placeholder="全部班级"
+              clearable
+              style="width: 150px"
+            >
+              <el-option
+                v-for="cls in gradeStore.classes"
+                :key="cls.id"
+                :label="cls.name"
+                :value="cls.id"
+              />
+            </el-select>
+          </el-form-item>
+        </template>
+
+        <!-- 教师：直接显示文本 -->
+        <template v-else>
+          <el-form-item label="课程">
+            <span class="teacher-info">{{ gradeStore.courses[0]?.name || '未分配' }}</span>
+          </el-form-item>
+          <el-form-item label="班级">
+            <span class="teacher-info">{{ gradeStore.classes[0]?.name || '未分配' }}</span>
+          </el-form-item>
+        </template>
         <el-form-item>
           <el-button @click="handleReset">重置</el-button>
         </el-form-item>
@@ -263,5 +291,10 @@ const handleReset = () => {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
+}
+
+.teacher-info {
+  font-weight: 500;
+  color: #409eff;
 }
 </style>
