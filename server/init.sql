@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255) NOT NULL,
   name VARCHAR(50) NOT NULL,
   role ENUM('admin', 'teacher', 'student') NOT NULL,
+  class_id INT DEFAULT NULL,   -- 教师负责的班级
+  course_id INT DEFAULT NULL,  -- 教师负责的课程
   status TINYINT DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -63,9 +65,11 @@ INSERT INTO users (username, password, name, role) VALUES
 ('admin', '$2b$10$7//PJkCZdNriNaboKMzT6uZd7heuMbnJxzc8xlqTwfz7CUy8As1TC', '管理员', 'admin');
 
 -- 插入教师账户 (密码: 123456)
-INSERT INTO users (username, password, name, role) VALUES 
-('teacher', '$2b$10$7//PJkCZdNriNaboKMzT6uZd7heuMbnJxzc8xlqTwfz7CUy8As1TC', '张老师', 'teacher'),
-('teacher02', '$2b$10$7//PJkCZdNriNaboKMzT6uZd7heuMbnJxzc8xlqTwfz7CUy8As1TC', '李老师', 'teacher');
+-- 张老师负责: 计算机2301班(1) + 高等数学(1)
+-- 李老师负责: 计算机2302班(2) + 大学英语(2)
+INSERT INTO users (username, password, name, role, class_id, course_id) VALUES 
+('teacher', '$2b$10$7//PJkCZdNriNaboKMzT6uZd7heuMbnJxzc8xlqTwfz7CUy8As1TC', '张老师', 'teacher', 1, 1),
+('teacher02', '$2b$10$7//PJkCZdNriNaboKMzT6uZd7heuMbnJxzc8xlqTwfz7CUy8As1TC', '李老师', 'teacher', 2, 2);
 
 -- 插入班级
 INSERT INTO classes (name, major) VALUES 
@@ -117,3 +121,4 @@ INSERT INTO grades (student_id, course_id, score, semester) VALUES
 -- ========================================
 SELECT '数据库初始化完成！' AS message;
 SELECT '默认账户密码均为: 123456' AS message;
+

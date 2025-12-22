@@ -1,9 +1,26 @@
 import pool from '../config/db.js'
 
-// 获取课程列表
+// 获取课程列表（教师只返回分配的课程，管理员返回全部）
 export async function getCourses(req, res) {
   try {
-    const [rows] = await pool.execute('SELECT * FROM courses ORDER BY id')
+    const { role, id: userId } = req.user
+
+    let sql
+    let params = []
+
+    if (role === 'teacher') {
+      // 教师只能看到自己负责的课程（从 users 表读取 course_id）
+      sql = `
+        SELECT c.* FROM courses c
+        WHERE c.id = (SELECT course_id FROM users WHERE id = ?)
+      `
+      params = [userId]
+    } else {
+      // 管理员和其他角色可以看到所有课程
+      sql = 'SELECT * FROM courses ORDER BY id'
+    }
+
+    const [rows] = await pool.execute(sql, params)
     res.json({
       code: 200,
       data: rows
@@ -17,16 +34,35 @@ export async function getCourses(req, res) {
   }
 }
 
-// 获取班级列表
+// 获取班级列表（教师只返回分配的班级，管理员返回全部）
 export async function getClasses(req, res) {
   try {
-    const [rows] = await pool.execute(
-      `SELECT c.*, COUNT(s.id) as student_count
-       FROM classes c
-       LEFT JOIN students s ON c.id = s.class_id
-       GROUP BY c.id
-       ORDER BY c.id`
-    )
+    const { role, id: userId } = req.user
+
+    let sql
+    let params = []
+
+    if (role === 'teacher') {
+      // 教师只能看到自己负责的班级
+      sql = `
+        SELECT c.*, COUNT(s.id) as student_count
+        FROM classes c
+        LEFT JOIN students s ON c.id = s.class_id
+        WHERE c.id = (SELECT class_id FROM users WHERE id = ?)
+        GROUP BY c.id
+      `
+      params = [userId]
+    } else {
+      sql = `
+        SELECT c.*, COUNT(s.id) as student_count
+        FROM classes c
+        LEFT JOIN students s ON c.id = s.class_id
+        GROUP BY c.id
+        ORDER BY c.id
+      `
+    }
+
+    const [rows] = await pool.execute(sql, params)
     res.json({
       code: 200,
       data: rows

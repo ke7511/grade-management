@@ -28,6 +28,13 @@ export async function getGrades(req, res) {
       params.push(userId)
     }
 
+    // 教师只能查看自己负责的课程和班级的成绩
+    if (role === 'teacher') {
+      sql += ' AND g.course_id = (SELECT course_id FROM users WHERE id = ?)'
+      sql += ' AND s.class_id = (SELECT class_id FROM users WHERE id = ?)'
+      params.push(userId, userId)
+    }
+
     if (keyword) {
       sql += ' AND (u.name LIKE ? OR s.student_id LIKE ?)'
       params.push(`%${keyword}%`, `%${keyword}%`)
@@ -69,12 +76,27 @@ export async function getGrades(req, res) {
 export async function createGrades(req, res) {
   try {
     const { courseId, semester, grades } = req.body
+    const { role, id: userId } = req.user
 
     if (!grades || grades.length === 0) {
       return res.status(400).json({
         code: 400,
         message: '成绩数据不能为空'
       })
+    }
+
+    // 教师只能录入自己负责的课程的成绩
+    if (role === 'teacher') {
+      const [allowed] = await pool.execute(
+        'SELECT 1 FROM users WHERE id = ? AND course_id = ?',
+        [userId, courseId]
+      )
+      if (allowed.length === 0) {
+        return res.status(403).json({
+          code: 403,
+          message: '您没有该课程的录入权限'
+        })
+      }
     }
 
     const connection = await pool.getConnection()
@@ -229,6 +251,7 @@ export async function getCourseStats(req, res) {
 export async function getFailedStudents(req, res) {
   try {
     const { courseId, passScore = 60 } = req.query
+    const { role, id: userId } = req.user
 
     let sql = `
       SELECT
@@ -245,6 +268,13 @@ export async function getFailedStudents(req, res) {
       WHERE g.score < ?
     `
     const params = [passScore]
+
+    // 教师只能查看自己负责的课程和班级的不及格学生
+    if (role === 'teacher') {
+      sql += ' AND g.course_id = (SELECT course_id FROM users WHERE id = ?)'
+      sql += ' AND s.class_id = (SELECT class_id FROM users WHERE id = ?)'
+      params.push(userId, userId)
+    }
 
     if (courseId) {
       sql += ' AND g.course_id = ?'

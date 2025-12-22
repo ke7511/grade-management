@@ -34,12 +34,6 @@ const router = createRouter({
           component: () => import('@/views/admin/UserManage.vue'),
           meta: { title: '用户管理', roles: ['admin'] }
         },
-        {
-          path: 'admin/settings',
-          name: 'SystemSettings',
-          component: () => import('@/views/admin/SystemSettings.vue'),
-          meta: { title: '系统设置', roles: ['admin'] }
-        },
         // 教师路由
         {
           path: 'teacher/input',
