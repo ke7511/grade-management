@@ -17,8 +17,13 @@ import { testConnection } from './config/db.js'
 const app = express()
 const PORT = process.env.PORT || 3000
 
-// 中间件
-app.use(cors())
+// CORS 配置 - 允许所有来源（Cloudflare Tunnel 需要）
+app.use(
+  cors({
+    origin: true, // 允许所有来源
+    credentials: true
+  })
+)
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 

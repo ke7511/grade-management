@@ -1,7 +1,8 @@
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUsers, createUser, updateUser, deleteUser } from '@/api/user'
+import dayjs from 'dayjs'
 
 const users = ref([])
 const loading = ref(false)
@@ -15,6 +16,17 @@ const roleMap = {
 const searchForm = reactive({
   keyword: '',
   role: ''
+})
+
+// 分页
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// 计算当前页数据
+const pagedUsers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return users.value.slice(start, end)
 })
 
 // 加载用户列表
@@ -180,7 +192,7 @@ const handleStatusChange = async row => {
       </div>
 
       <!-- 表格 -->
-      <el-table :data="users" stripe style="width: 100%" v-loading="loading">
+      <el-table :data="pagedUsers" stripe style="width: 100%" v-loading="loading">
         <el-table-column type="index" label="#" width="60" />
         <el-table-column prop="username" label="用户名" />
         <el-table-column prop="name" label="姓名" />
@@ -203,8 +215,12 @@ const handleStatusChange = async row => {
             />
           </template>
         </el-table-column>
-        <el-table-column prop="created_at" label="创建时间" width="180" />
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="创建时间" min-width="180">
+          <template #default="{ row }">
+            {{ dayjs(row.created_at).format('YYYY-MM-DD HH:mm') }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
             <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
@@ -215,10 +231,12 @@ const handleStatusChange = async row => {
       <!-- 分页 -->
       <div class="pagination">
         <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
           background
-          layout="total, prev, pager, next"
+          layout="total, sizes, prev, pager, next"
           :total="users.length"
-          :page-size="10"
+          :page-sizes="[10, 20, 50]"
         />
       </div>
     </div>

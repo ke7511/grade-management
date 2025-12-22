@@ -65,7 +65,7 @@ export async function getGrades(req, res) {
   }
 }
 
-// 批量录入成绩
+// 批量录入成绩（如果已存在则更新）
 export async function createGrades(req, res) {
   try {
     const { courseId, semester, grades } = req.body
@@ -81,11 +81,31 @@ export async function createGrades(req, res) {
     await connection.beginTransaction()
 
     try {
+      let insertCount = 0
+      let updateCount = 0
+
       for (const grade of grades) {
-        await connection.execute(
-          'INSERT INTO grades (student_id, course_id, score, semester) VALUES (?, ?, ?, ?)',
-          [grade.studentId, courseId, grade.score, semester]
+        // 检查是否已存在该学生在该课程该学期的成绩
+        const [existing] = await connection.execute(
+          'SELECT id FROM grades WHERE student_id = ? AND course_id = ? AND semester = ?',
+          [grade.studentId, courseId, semester]
         )
+
+        if (existing.length > 0) {
+          // 已存在，更新成绩
+          await connection.execute('UPDATE grades SET score = ? WHERE id = ?', [
+            grade.score,
+            existing[0].id
+          ])
+          updateCount++
+        } else {
+          // 不存在，插入新记录
+          await connection.execute(
+            'INSERT INTO grades (student_id, course_id, score, semester) VALUES (?, ?, ?, ?)',
+            [grade.studentId, courseId, grade.score, semester]
+          )
+          insertCount++
+        }
       }
 
       await connection.commit()
@@ -93,7 +113,7 @@ export async function createGrades(req, res) {
 
       res.json({
         code: 200,
-        message: `成功录入 ${grades.length} 条成绩`
+        message: `成功录入 ${insertCount} 条新成绩，更新 ${updateCount} 条已有成绩`
       })
     } catch (error) {
       await connection.rollback()

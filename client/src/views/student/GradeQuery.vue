@@ -27,8 +27,10 @@ onMounted(() => {
 const stats = computed(() => {
   if (grades.value.length === 0) return null
 
-  const scores = grades.value.map(g => g.score)
+  const scores = grades.value.map(g => Number(g.score))
+  console.log(scores)
   const avg = scores.reduce((a, b) => a + b, 0) / scores.length
+  console.log(avg)
   const passCount = scores.filter(s => s >= 60).length
 
   return {
@@ -85,10 +87,10 @@ const getLevel = score => {
 
       <el-table :data="grades" stripe style="width: 100%" v-loading="loading">
         <el-table-column type="index" label="#" width="60" />
-        <el-table-column prop="course_code" label="课程代码" width="120" />
-        <el-table-column prop="course_name" label="课程名称" />
-        <el-table-column prop="semester" label="学期" width="100" />
-        <el-table-column label="成绩" width="100">
+        <el-table-column prop="course_code" label="课程代码" min-width="120" />
+        <el-table-column prop="course_name" label="课程名称" min-width="150" />
+        <el-table-column prop="semester" label="学期" min-width="100" />
+        <el-table-column label="成绩" min-width="100">
           <template #default="{ row }">
             <span
               class="score"
@@ -98,7 +100,7 @@ const getLevel = score => {
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="等级" width="100">
+        <el-table-column label="等级" min-width="100">
           <template #default="{ row }">
             <el-tag :type="getLevel(row.score).type">
               {{ getLevel(row.score).label }}

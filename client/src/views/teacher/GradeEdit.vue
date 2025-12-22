@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useGradeStore } from '@/stores/grade'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -13,6 +13,22 @@ const searchForm = reactive({
   courseId: null,
   classId: null
 })
+
+// 分页
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// 计算当前页数据
+const pagedGradeList = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return gradeList.value.slice(start, end)
+})
+
+// 分页变化时重置到第一页
+const resetPage = () => {
+  currentPage.value = 1
+}
 
 // 加载数据
 const loadData = async () => {
@@ -36,6 +52,7 @@ const loadGrades = async () => {
       classId: searchForm.classId
     })
     gradeList.value = data
+    resetPage()
   } finally {
     loading.value = false
   }
@@ -172,14 +189,14 @@ const handleReset = () => {
       </el-form>
 
       <!-- 成绩表格 -->
-      <el-table :data="gradeList" stripe style="width: 100%" v-loading="loading">
+      <el-table :data="pagedGradeList" stripe style="width: 100%" v-loading="loading">
         <el-table-column type="index" label="#" width="60" />
-        <el-table-column prop="student_code" label="学号" width="120" />
-        <el-table-column prop="student_name" label="姓名" width="100" />
-        <el-table-column prop="class_name" label="班级" width="140" />
-        <el-table-column prop="course_name" label="课程" width="120" />
-        <el-table-column prop="semester" label="学期" width="100" />
-        <el-table-column prop="score" label="成绩" width="100">
+        <el-table-column prop="student_code" label="学号" min-width="120" />
+        <el-table-column prop="student_name" label="姓名" min-width="100" />
+        <el-table-column prop="class_name" label="班级" min-width="140" />
+        <el-table-column prop="course_name" label="课程" min-width="120" />
+        <el-table-column prop="semester" label="学期" min-width="100" />
+        <el-table-column prop="score" label="成绩" min-width="100">
           <template #default="{ row }">
             <el-tag :type="row.score >= 60 ? 'success' : 'danger'">
               {{ row.score }}
@@ -197,10 +214,12 @@ const handleReset = () => {
       <!-- 分页 -->
       <div class="pagination">
         <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
           background
-          layout="total, prev, pager, next"
+          layout="total, sizes, prev, pager, next"
           :total="gradeList.length"
-          :page-size="10"
+          :page-sizes="[10, 20, 50]"
         />
       </div>
     </div>

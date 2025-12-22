@@ -32,11 +32,6 @@ const menuConfig = {
         { title: '成绩导出', path: '/teacher/export' },
         { title: '补考通知单', path: '/teacher/retake' }
       ]
-    },
-    {
-      title: '系统设置',
-      icon: 'Setting',
-      path: '/admin/settings'
     }
   ],
   teacher: [

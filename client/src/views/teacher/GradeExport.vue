@@ -151,12 +151,12 @@ const handleExport = () => {
         v-loading="loading"
       >
         <el-table-column type="index" label="#" width="60" />
-        <el-table-column prop="student_code" label="学号" width="120" />
-        <el-table-column prop="student_name" label="姓名" width="100" />
-        <el-table-column prop="class_name" label="班级" width="140" />
-        <el-table-column prop="course_name" label="课程" width="120" />
-        <el-table-column prop="semester" label="学期" width="100" />
-        <el-table-column prop="score" label="成绩" width="80">
+        <el-table-column prop="student_code" label="学号" min-width="120" />
+        <el-table-column prop="student_name" label="姓名" min-width="100" />
+        <el-table-column prop="class_name" label="班级" min-width="140" />
+        <el-table-column prop="course_name" label="课程" min-width="120" />
+        <el-table-column prop="semester" label="学期" min-width="100" />
+        <el-table-column prop="score" label="成绩" min-width="80">
           <template #default="{ row }">
             <el-tag :type="row.score >= 60 ? 'success' : 'danger'">
               {{ row.score }}

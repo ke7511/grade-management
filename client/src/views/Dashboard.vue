@@ -42,7 +42,7 @@ const quickActions = {
   admin: [
     { title: '用户管理', icon: 'User', path: '/admin/users', color: '#409eff' },
     { title: '成绩统计', icon: 'DataAnalysis', path: '/teacher/stats', color: '#67c23a' },
-    { title: '系统设置', icon: 'Setting', path: '/admin/settings', color: '#e6a23c' }
+    { title: '成绩导出', icon: 'Download', path: '/teacher/export', color: '#e6a23c' }
   ],
   teacher: [
     { title: '成绩录入', icon: 'EditPen', path: '/teacher/input', color: '#409eff' },

@@ -145,9 +145,9 @@ const handleClear = () => {
       <!-- 成绩录入表格 -->
       <el-table v-if="gradeList.length > 0" :data="gradeList" stripe style="width: 100%">
         <el-table-column type="index" label="#" width="60" />
-        <el-table-column prop="studentCode" label="学号" width="120" />
-        <el-table-column prop="studentName" label="姓名" width="120" />
-        <el-table-column label="成绩" width="200">
+        <el-table-column prop="studentCode" label="学号" min-width="120" />
+        <el-table-column prop="studentName" label="姓名" min-width="120" />
+        <el-table-column label="成绩" min-width="200">
           <template #default="{ row }">
             <el-input-number
               v-model="row.score"
