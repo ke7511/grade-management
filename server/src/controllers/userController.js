@@ -60,6 +60,14 @@ export async function createUser(req, res) {
       [username, hashedPassword, name, role, class_id || null, course_id || null, status]
     )
 
+    // 如果是学生角色，同步创建 students 表记录
+    if (role === 'student' && class_id) {
+      await pool.execute(
+        'INSERT INTO students (student_id, user_id, class_id) VALUES (?, ?, ?)',
+        [username, result.insertId, class_id]
+      )
+    }
+
     res.json({
       code: 200,
       message: '用户创建成功',
@@ -104,6 +112,25 @@ export async function updateUser(req, res) {
     params.push(id)
 
     await pool.execute(sql, params)
+
+    // 如果是学生角色，同步更新 students 表的 class_id
+    if (role === 'student') {
+      // 检查是否已有 students 记录
+      const [studentRecord] = await pool.execute('SELECT id FROM students WHERE user_id = ?', [id])
+      if (studentRecord.length > 0) {
+        // 更新现有记录
+        await pool.execute('UPDATE students SET class_id = ? WHERE user_id = ?', [class_id || null, id])
+      } else if (class_id) {
+        // 创建新记录
+        const [user] = await pool.execute('SELECT username FROM users WHERE id = ?', [id])
+        if (user.length > 0) {
+          await pool.execute(
+            'INSERT INTO students (student_id, user_id, class_id) VALUES (?, ?, ?)',
+            [user[0].username, id, class_id]
+          )
+        }
+      }
+    }
 
     res.json({
       code: 200,

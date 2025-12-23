@@ -1,4 +1,8 @@
 import mysql from 'mysql2/promise'
+import dotenv from 'dotenv'
+
+// 加载环境变量（本地开发时需要）
+dotenv.config()
 
 // 创建数据库连接池
 // 支持 Railway 的 MYSQL_URL 格式，也支持单独的环境变量
