@@ -16,7 +16,7 @@ const submitting = ref(false)
 const form = reactive({
   courseId: null,
   classId: null,
-  semester: '2025-1'
+  semester: '2025-2026-1'
 })
 
 // 选中的学生成绩

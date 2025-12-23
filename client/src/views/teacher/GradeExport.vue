@@ -16,7 +16,7 @@ const gradeList = ref([])
 const form = reactive({
   courseId: null,
   classId: null,
-  semester: '2025-1'
+  semester: '2025-2026-1'
 })
 
 // 课程选项
