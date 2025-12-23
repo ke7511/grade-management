@@ -105,6 +105,41 @@ router.post('/init-db', async (req, res) => {
       ('teacher02', '$2b$10$7//PJkCZdNriNaboKMzT6uZd7heuMbnJxzc8xlqTwfz7CUy8As1TC', '李老师', 'teacher', 2, 2)
     `)
 
+    // 插入学生账户
+    await connection.execute(`
+      INSERT IGNORE INTO users (id, username, password, name, role) VALUES
+      (10, 'student01', '$2b$10$7//PJkCZdNriNaboKMzT6uZd7heuMbnJxzc8xlqTwfz7CUy8As1TC', '张三', 'student'),
+      (11, 'student02', '$2b$10$7//PJkCZdNriNaboKMzT6uZd7heuMbnJxzc8xlqTwfz7CUy8As1TC', '李四', 'student'),
+      (12, 'student03', '$2b$10$7//PJkCZdNriNaboKMzT6uZd7heuMbnJxzc8xlqTwfz7CUy8As1TC', '王五', 'student'),
+      (13, 'student04', '$2b$10$7//PJkCZdNriNaboKMzT6uZd7heuMbnJxzc8xlqTwfz7CUy8As1TC', '赵六', 'student'),
+      (14, 'student05', '$2b$10$7//PJkCZdNriNaboKMzT6uZd7heuMbnJxzc8xlqTwfz7CUy8As1TC', '钱七', 'student')
+    `)
+
+    // 插入学生信息
+    await connection.execute(`
+      INSERT IGNORE INTO students (id, student_id, user_id, class_id) VALUES
+      (1, '2023001', 10, 1),
+      (2, '2023002', 11, 1),
+      (3, '2023003', 12, 1),
+      (4, '2023004', 13, 2),
+      (5, '2023005', 14, 2)
+    `)
+
+    // 插入成绩数据
+    await connection.execute(`
+      INSERT IGNORE INTO grades (id, student_id, course_id, score, semester) VALUES
+      (1, 1, 1, 85.5, '2025-2026-1'),
+      (2, 1, 2, 78.0, '2025-2026-1'),
+      (3, 2, 1, 92.0, '2025-2026-1'),
+      (4, 2, 2, 88.5, '2025-2026-1'),
+      (5, 3, 1, 55.0, '2025-2026-1'),
+      (6, 3, 2, 62.0, '2025-2026-1'),
+      (7, 4, 2, 95.0, '2025-2026-1'),
+      (8, 4, 3, 89.0, '2025-2026-1'),
+      (9, 5, 2, 45.0, '2025-2026-1'),
+      (10, 5, 3, 58.0, '2025-2026-1')
+    `)
+
     connection.release()
 
     res.json({
