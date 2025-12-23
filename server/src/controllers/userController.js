@@ -6,7 +6,7 @@ export async function getUsers(req, res) {
   try {
     const { keyword, role } = req.query
 
-    let sql = 'SELECT id, username, name, role, status, created_at FROM users WHERE 1=1'
+    let sql = 'SELECT id, username, name, role, class_id, course_id, status, created_at FROM users WHERE 1=1'
     const params = []
 
     if (keyword) {
@@ -39,7 +39,7 @@ export async function getUsers(req, res) {
 // 创建用户
 export async function createUser(req, res) {
   try {
-    const { username, password, name, role, status = 1 } = req.body
+    const { username, password, name, role, class_id, course_id, status = 1 } = req.body
 
     // 检查用户名是否已存在
     const [existing] = await pool.execute('SELECT id FROM users WHERE username = ?', [username])
@@ -56,8 +56,8 @@ export async function createUser(req, res) {
 
     // 插入用户
     const [result] = await pool.execute(
-      'INSERT INTO users (username, password, name, role, status) VALUES (?, ?, ?, ?, ?)',
-      [username, hashedPassword, name, role, status]
+      'INSERT INTO users (username, password, name, role, class_id, course_id, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [username, hashedPassword, name, role, class_id || null, course_id || null, status]
     )
 
     res.json({
@@ -78,7 +78,7 @@ export async function createUser(req, res) {
 export async function updateUser(req, res) {
   try {
     const { id } = req.params
-    const { username, password, name, role, status } = req.body
+    const { username, password, name, role, class_id, course_id, status } = req.body
 
     // 检查用户是否存在
     const [existing] = await pool.execute('SELECT id FROM users WHERE id = ?', [id])
@@ -90,8 +90,8 @@ export async function updateUser(req, res) {
     }
 
     // 构建更新语句
-    let sql = 'UPDATE users SET username = ?, name = ?, role = ?, status = ?'
-    const params = [username, name, role, status]
+    let sql = 'UPDATE users SET username = ?, name = ?, role = ?, class_id = ?, course_id = ?, status = ?'
+    const params = [username, name, role, class_id || null, course_id || null, status]
 
     // 如果提供了新密码，则更新密码
     if (password) {

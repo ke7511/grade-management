@@ -2,7 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 
-// 加载环境变量
+// 加载环境变量（支持从 server 目录或项目根目录运行）
+dotenv.config({ path: './.env' })
 dotenv.config({ path: './server/.env' })
 
 // 导入路由

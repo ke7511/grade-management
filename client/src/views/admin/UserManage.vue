@@ -2,9 +2,12 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUsers, createUser, updateUser, deleteUser } from '@/api/user'
+import { getClasses, getCourses } from '@/api/base'
 import dayjs from 'dayjs'
 
 const users = ref([])
+const classes = ref([])
+const courses = ref([])
 const loading = ref(false)
 
 const roleMap = {
@@ -57,6 +60,7 @@ watch(
 // 初始化加载
 onMounted(() => {
   loadUsers()
+  loadBaseData()
 })
 
 // 弹窗相关
@@ -69,13 +73,15 @@ const userForm = reactive({
   name: '',
   password: '',
   role: 'student',
+  class_id: null,
+  course_id: null,
   status: 1
 })
 
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  password: [{ min: 6, message: '密码长度至少为6位', trigger: 'blur' }],
   role: [{ required: true, message: '请选择角色', trigger: 'change' }]
 }
 
@@ -88,9 +94,35 @@ const handleAdd = () => {
     name: '',
     password: '',
     role: 'student',
+    class_id: null,
+    course_id: null,
     status: 1
   })
   dialogVisible.value = true
+}
+
+// 监听角色变化，清空不相关字段
+watch(
+  () => userForm.role,
+  newRole => {
+    if (newRole === 'admin') {
+      userForm.class_id = null
+      userForm.course_id = null
+    } else if (newRole === 'student') {
+      userForm.course_id = null
+    }
+  }
+)
+
+// 加载班级和课程列表
+const loadBaseData = async () => {
+  try {
+    const [classRes, courseRes] = await Promise.all([getClasses(), getCourses()])
+    classes.value = classRes.data
+    courses.value = courseRes.data
+  } catch {
+    // 错误已在拦截器处理
+  }
 }
 
 // 打开编辑弹窗
@@ -263,6 +295,34 @@ const handleStatusChange = async row => {
             <el-option label="管理员" value="admin" />
             <el-option label="教师" value="teacher" />
             <el-option label="学生" value="student" />
+          </el-select>
+        </el-form-item>
+        <el-form-item
+          v-if="userForm.role === 'student' || userForm.role === 'teacher'"
+          label="班级"
+        >
+          <el-select
+            v-model="userForm.class_id"
+            placeholder="请选择班级"
+            clearable
+            style="width: 100%"
+          >
+            <el-option v-for="cls in classes" :key="cls.id" :label="cls.name" :value="cls.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="userForm.role === 'teacher'" label="科目">
+          <el-select
+            v-model="userForm.course_id"
+            placeholder="请选择科目"
+            clearable
+            style="width: 100%"
+          >
+            <el-option
+              v-for="course in courses"
+              :key="course.id"
+              :label="course.name"
+              :value="course.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
