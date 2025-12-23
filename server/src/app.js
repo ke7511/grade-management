@@ -10,6 +10,7 @@ import authRoutes from './routes/auth.js'
 import userRoutes from './routes/users.js'
 import gradeRoutes from './routes/grades.js'
 import baseRoutes from './routes/base.js'
+import setupRoutes from './routes/setup.js'
 
 // 导入数据库
 import { testConnection } from './config/db.js'
@@ -37,6 +38,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/grades', gradeRoutes)
+app.use('/api/setup', setupRoutes)
 app.use('/api', baseRoutes)
 
 // 根路由
