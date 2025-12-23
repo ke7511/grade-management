@@ -11,11 +11,11 @@ export async function getGrades(req, res) {
         g.id, g.score, g.semester, g.created_at,
         s.id as student_id, s.student_id as student_code,
         u.name as student_name,
-        c.id as course_id, c.name as course_name, c.code as course_code,
+        c.id as course_id, c.name as course_name,
         cl.id as class_id, cl.name as class_name
       FROM grades g
       JOIN students s ON g.student_id = s.id
-      JOIN users u ON s.user_id = u.id
+      JOIN users u ON s.user_id = u.id·
       JOIN courses c ON g.course_id = c.id
       LEFT JOIN classes cl ON s.class_id = cl.id
       WHERE 1=1
