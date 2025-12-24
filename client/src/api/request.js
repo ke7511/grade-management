@@ -62,7 +62,7 @@ request.interceptors.response.use(
         ElMessage.error(data?.message || '请求失败')
       }
     } else {
-      ElMessage.error('网络错误，请稀后重试')
+      ElMessage.error('网络错误，请稍后重试')
     }
     return Promise.reject(error)
   }
